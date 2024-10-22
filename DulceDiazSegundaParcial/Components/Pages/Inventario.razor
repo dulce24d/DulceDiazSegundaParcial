@@ -1,0 +1,149 @@
+﻿@page "/Inventario"
+@using DulceDiazSegundaParcial.Model
+
+<PageTitle>Gestión de Productos</PageTitle>
+
+<EditForm Model="_producto" OnValidSubmit="Guardar" FormName="frmProducto">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row mb-3 align-items-center">
+        <div class="col col-1">
+            <label for="txtnumero" class="form-label">Número de Inventario:</label>
+        </div>
+        <div class="col col-6">
+            <InputNumber class="form-control" id="txtnumero" @bind-Value="_producto.Numero" />
+            <ValidationMessage For="@(() => _producto.Numero)" class="text-danger" />
+        </div>
+    </div>
+
+     <div class="row mb-3 align-items-center">
+        <div class="col col-1">
+            <label for="txtnombre" class="form-label">Nombre:</label>
+        </div>
+        <div class="col col-6">
+            <InputText class="form-control" id="txtnombre" @bind-Value="_producto.Nombre" />
+            <ValidationMessage For="@(() => _producto.Nombre)" class="text-danger" />
+        </div>
+    </div>
+    
+    <div class="row mb-3 align-items-center">
+        <div class="col col-1">
+            <label class="form-label">Departamento:</label>
+        </div>
+        <div class="col col-6">
+            <InputRadioGroup @bind-Value="_producto.Departamento">
+                <div class="form-check">
+                    <InputRadio id="frutas" class="form-check-input" Value="@(()=>"Frutas")" />
+                    <label class="form-check-label" for="frutas">Frutas</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio id="verduras" class="form-check-input" Value="@(()=>"Verduras")" />
+                    <label class="form-check-label" for="verduras">Verduras</label>
+                </div>
+                <div class="form-check">
+                    <InputRadio id="lacteos" class="form-check-input" Value="@(()=>"Lacteos")" />
+                    <label class="form-check-label" for="lacteos">Lácteos</label>
+                </div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => _producto.Departamento)" class="text-danger" />
+        </div>
+    </div>
+ 
+    <button class="btn btn-primary mb-3 rounded" type="submit">Guardar</button>
+    <button @onclick="MostrarExistencias" class="btn btn-secondary mb-3 rounded">Existencias</button>
+    <button @onclick="MostrarListado" class="btn btn-secondary mb-3 rounded">Listado</button>
+</EditForm>
+
+
+@if (productos.Count > 0)
+{
+    <h3>Lista de Productos</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Número de Inventario</th>
+                <th>Nombre</th>
+                <th>Departamento</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var prod in productos)
+            {
+                <tr>
+                    <td>@prod.Numero</td>
+                    <td>@prod.Nombre</td>
+                    <td>@prod.Departamento</td>
+                    <td>
+                        <button @onclick="@( () => Editar(prod) )" class="btn btn-warning">Editar</button>
+                        <button @onclick="@( () => Eliminar(prod) )" class="btn btn-danger">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Producto _producto = new Producto();
+    private List<Producto> productos = new List<Producto>();
+    private bool EnEdicion = false;
+    private bool mostrandoExistencias = false;
+
+    private void Guardar()
+    {
+       
+        if (productos.Any(p => p.Numero == _producto.Numero) && !EnEdicion)
+        {
+            
+            return;
+        }
+
+        if (EnEdicion)
+        {
+            var productoExistente = productos.FirstOrDefault(p => p.Numero == _producto.Numero);
+            if (productoExistente != null)
+            {
+                productoExistente.Nombre = _producto.Nombre;
+                productoExistente.Departamento = _producto.Departamento;
+            }
+            EnEdicion = false;
+        }
+        else
+        {
+            productos.Add(new Producto
+            {
+                Numero = _producto.Numero,
+                Nombre = _producto.Nombre,
+                Departamento = _producto.Departamento
+            });
+        }
+
+        _producto = new Producto(); 
+    }
+
+    private void Editar(Producto prod)
+    {
+        _producto = new Producto
+        {
+            Numero = prod.Numero,
+            Nombre = prod.Nombre,
+            Departamento = prod.Departamento
+        };
+        EnEdicion = true;
+    }
+
+    private void Eliminar(Producto prod)
+    {
+        productos.Remove(prod);
+    }
+    private void MostrarExistencias()
+    {
+        mostrandoExistencias = true; 
+    }
+    private void MostrarListado()
+    {
+        mostrandoExistencias = false; 
+    }
+}
